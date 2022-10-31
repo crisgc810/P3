@@ -11,7 +11,11 @@ namespace upc {
   void PitchAnalyzer::autocorrelation(const vector<float> &x, vector<float> &r) const {
 
     for (unsigned int l = 0; l < r.size(); ++l) {
-  		/// \TODO Compute the autocorrelation r[l]
+  		r[l]=0;
+      for(unsigned int n=l; n<x.size(); n++){
+          r[l]+=x[n]*x[n-l];
+      }
+      r[l]=r[l]/x.size();
     }
 
     if (r[0] == 0.0F) //to avoid log() and divide zero 
@@ -75,6 +79,12 @@ namespace upc {
 	///    - The lag corresponding to the maximum value of the pitch.
     ///	   .
 	/// In either case, the lag should not exceed that of the minimum value of the pitch.
+
+  for(iR=r.begin()+npitch_min; iR<r.begin()+npitch_max; iR++){
+    if(iR>iRMax){
+      iRMax=iR;
+    }
+  }
 
     unsigned int lag = iRMax - r.begin();
 
