@@ -11,11 +11,17 @@ namespace upc {
   void PitchAnalyzer::autocorrelation(const vector<float> &x, vector<float> &r) const {
 
     for (unsigned int l = 0; l < r.size(); ++l) {
-  		r[l]=0;
-      for(unsigned int n=l; n<x.size(); n++){
-          r[l]+=x[n]*x[n-l];
+  		/// \TODO Compute the autocorrelation r[l]
+      /// \DONE Autocorrelation computed
+      /// - Inicialitzem l'autocorrelació a 0
+      /// - Afegim el producte
+      /// - Dividim per la durada
+      /// *** TAXANNNN ***
+      r[l]=0;
+      for(unsigned int n=l; n< x.size(); n++){
+        r[l] += x[n]*x[n-l];
       }
-      r[l]=r[l]/x.size();
+      r[l] = r[l]/x.size();
     }
 
     if (r[0] == 0.0F) //to avoid log() and divide zero 
@@ -54,6 +60,8 @@ namespace upc {
     /// \TODO Implement a rule to decide whether the sound is voiced or not.
     /// * You can use the standard features (pot, r1norm, rmaxnorm),
     ///   or compute and use other ones.
+    if(rmaxnorm> umaxnorm) return false;
+  
     return true;
   }
 
@@ -70,28 +78,29 @@ namespace upc {
     //Compute correlation
     autocorrelation(x, r);
 
-    vector<float>::const_iterator iR = r.begin(), iRMax = iR;
+    vector<float>::const_iterator iR, iRMax;
 
     /// \TODO 
+    /// \DONE 
 	/// Find the lag of the maximum value of the autocorrelation away from the origin.<br>
 	/// Choices to set the minimum value of the lag are:
 	///    - The first negative value of the autocorrelation.
 	///    - The lag corresponding to the maximum value of the pitch.
-    ///	   .
+  ///	   .
 	/// In either case, the lag should not exceed that of the minimum value of the pitch.
-  
-  //std::itEnd=next(iR=r.begin(), npitch_max +(1) );
-  // //std::advance(iR=r.begin(), npitch_min);
-  //for(std::advance(iR=r.begin(), npitch_min); iR != itEnd; iR++)
-  for(iR=r.begin()+npitch_min; iR<r.begin()+npitch_max; iR++){
-    if(iR>iRMax){
-      iRMax=iR;
-      //index i = std::distance(r.begin(), it);
+
+  //std::itEnd=next(iR=r.begin(), lag_max +(1) );
+  // //std::advance(iR=r.begin(), lag_min);
+  //for(std::advance(iR=r.begin(), lag_min); iR != itEnd; iR++)
+ 
+ //Com que el màxim ha d'estar entre en màx i el mín pitch fem el for que recorri aquest espai
+    for(iRMax = iR = r.begin() + npitch_min; iR< r.begin()+ npitch_max; iR++){ 
+      if(*iR>*iRMax){
+        iRMax= iR;   //Si el iR és més gran que el màxim, actualitzem el valor d'aquest màxim
+      }
     }
-  }
-
     unsigned int lag = iRMax - r.begin();
-
+    //index lag = std::distance(r.begin(), iRMax);
     float pot = 10 * log10(r[0]);
 
     //You can print these (and other) features, look at them using wavesurfer

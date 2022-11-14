@@ -17,7 +17,7 @@ using namespace std;
 using namespace upc;
 
 static const char USAGE[] = R"(
-get_pitch - Pitch Detector 
+get_pitch - Pitch Estimator 
 
 Usage:
     get_pitch [options] <input-wav> <output-txt>
@@ -25,22 +25,21 @@ Usage:
     get_pitch --version
 
 Options:
+    -m REAL, --umaxnorm=REAL  Llindar/umbral del màxim de l'autocorrelació [default: 0.6]
     -h, --help  Show this screen
     --version   Show the version of the project
 
 Arguments:
     input-wav   Wave file with the audio signal
-    output-txt  Output file: ASCII file with the result of the detection:
+    output-txt  Output file: ASCII file with the result of the estimation:
                     - One line per frame with the estimated f0
                     - If considered unvoiced, f0 must be set to f0 = 0
 )";
-
-float abs_f(float value){  
+float abs_f(float value){
   if (value < 0.0)
     return -1.0*value;
-  return value; 
-} 
- 
+  return value;
+}
 int main(int argc, const char *argv[]) {
 	/// \TODO 
 	///  Modify the program syntax and the call to **docopt()** in order to
@@ -52,7 +51,8 @@ int main(int argc, const char *argv[]) {
 
 	std::string input_wav = args["<input-wav>"].asString();
 	std::string output_txt = args["<output-txt>"].asString();
-
+  float umaxnorm = stof(args["--umaxnorm"].asString());
+  
   // Read input sound file
   unsigned int rate;
   vector<float> x;
@@ -65,12 +65,12 @@ int main(int argc, const char *argv[]) {
   int n_shift = rate * FRAME_SHIFT;
 
   // Define analyzer
-  PitchAnalyzer analyzer(n_len, rate, PitchAnalyzer::HAMMING, 50, 500);
+  PitchAnalyzer analyzer(n_len, rate, PitchAnalyzer::RECT, 50, 500, umaxnorm);
 
   /// \TODO
   /// Preprocess the input signal in order to ease pitch estimation. For instance,
   /// central-clipping or low pass filtering may be used.
-  
+
   float max = -1.0e10, min = 1.0e10;
   float Cl1, Cl2, Cl; // Clipping first 1/3 and last 1/3 
   // Iterate for each frame and save values in f0 vector
@@ -124,6 +124,14 @@ int main(int argc, const char *argv[]) {
   // JUST ODD NUMBERS  
   int F_size = 1;  
   vector<float> filter; 
+  
+  /* Iterate for each frame and save values in f0 vector
+  vector<float>::iterator iX;
+  vector<float> f0;
+  for (iX = x.begin(); iX + n_len < x.end(); iX = iX + n_shift) {
+    float f = analyzer(iX, iX + n_len);
+    f0.push_back(f);
+  }*/
 
   /// \TODO
   /// Postprocess the estimation in order to supress errors. For instance, a median filter
