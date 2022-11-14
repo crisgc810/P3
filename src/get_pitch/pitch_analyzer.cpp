@@ -79,10 +79,14 @@ namespace upc {
 	///    - The lag corresponding to the maximum value of the pitch.
     ///	   .
 	/// In either case, the lag should not exceed that of the minimum value of the pitch.
-
+  
+  //std::itEnd=next(iR=r.begin(), npitch_max +(1) );
+  // //std::advance(iR=r.begin(), npitch_min);
+  //for(std::advance(iR=r.begin(), npitch_min); iR != itEnd; iR++)
   for(iR=r.begin()+npitch_min; iR<r.begin()+npitch_max; iR++){
     if(iR>iRMax){
       iRMax=iR;
+      //index i = std::distance(r.begin(), it);
     }
   }
 
