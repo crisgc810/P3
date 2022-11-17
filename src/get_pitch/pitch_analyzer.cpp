@@ -18,7 +18,7 @@ namespace upc {
       /// - Dividim per la durada
       /// *** TAXANNNN ***
       r[l]=0;
-      for(unsigned int n=l; n< x.size(); n++){
+      for(unsigned int n=l; n< x.size()-l; n++){
         r[l] += x[n]*x[n-l];
       }
       r[l] = r[l]/x.size();
@@ -60,7 +60,8 @@ namespace upc {
     /// \TODO Implement a rule to decide whether the sound is voiced or not.
     /// * You can use the standard features (pot, r1norm, rmaxnorm),
     ///   or compute and use other ones.
-    if(rmaxnorm> umaxnorm) return false;
+    
+    if(rmaxnorm> 0.6) return false;
   
     return true;
   }
@@ -78,7 +79,7 @@ namespace upc {
     //Compute correlation
     autocorrelation(x, r);
 
-    vector<float>::const_iterator iR, iRMax;
+    vector<float>::const_iterator iR = r.begin(), iRMax, iREnd;
 
     /// \TODO 
     /// \DONE 
@@ -88,18 +89,25 @@ namespace upc {
 	///    - The lag corresponding to the maximum value of the pitch.
   ///	   .
 	/// In either case, the lag should not exceed that of the minimum value of the pitch.
+    
+  //Com que el màxim ha d'estar entre en màx i el mín pitch fem el for que recorri aquest espai
+  //Si iR és més gran que el màxim, actualitzem el valor d'aquest màxim
+  
+//    std::advance(iR, npitch_min);
+//    iREnd = std::next(iR, npitch_max);
+//    for(iRMax = iR; iR < iREnd; iR++){
+//      if(*iR>*iRMax){
+//        iRMax = iR;
+//      }
+//    }
 
-  //std::itEnd=next(iR=r.begin(), lag_max +(1) );
-  // //std::advance(iR=r.begin(), lag_min);
-  //for(std::advance(iR=r.begin(), lag_min); iR != itEnd; iR++)
- 
- //Com que el màxim ha d'estar entre en màx i el mín pitch fem el for que recorri aquest espai
-    for(iRMax = iR = r.begin() + npitch_min; iR< r.begin()+ npitch_max; iR++){ 
-      if(*iR>*iRMax){
-        iRMax= iR;   //Si el iR és més gran que el màxim, actualitzem el valor d'aquest màxim
-      }
+   iREnd = r.begin() + npitch_max;
+   for(iRMax=iR= r.begin() + npitch_min; iR< iREnd; iR++){ 
+     if(*iR>*iRMax){
+       iRMax= iR;
     }
-    unsigned int lag = iRMax - r.begin();
+  }
+      unsigned int lag = iRMax - r.begin();
     //index lag = std::distance(r.begin(), iRMax);
     float pot = 10 * log10(r[0]);
 
