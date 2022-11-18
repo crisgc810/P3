@@ -12,7 +12,7 @@ namespace upc {
 
     for (unsigned int l = 0; l < r.size(); ++l) {
   		/// \TODO Compute the autocorrelation r[l]
-      /// \FET Autocorrelation computed
+      /// \DONE Autocorrelation computed
       /// - Inicialitzem l'autocorrelació a 0
       /// - Afegim el producte
       /// - Dividim per la durada
@@ -37,6 +37,7 @@ namespace upc {
     switch (win_type) {
     case HAMMING:
       /// \TODO Implement the Hamming window
+      /// \DONE Formula aplicada
       for(unsigned int i=0; i<frameLen; i++){
         window[i] = 0.54 - 0.46*cos((2*M_PI*i)/(frameLen-1));
       }
