@@ -89,8 +89,6 @@ int main(int argc, const char *argv[]) {
   // Get minimum of both maximums of the first and last part of the signal  
   Cl = 0.001*std::min(Cl1, Cl2);
 
-//  std::cout << Cl << std::endl; //Print at bash Cl and endline('\n')
-
   for(iX = x.begin(); iX<x.end(); iX++){
     if(abs_f(*iX)<Cl)      
       *iX = 0;    
@@ -101,13 +99,12 @@ int main(int argc, const char *argv[]) {
         *iX = *iX + Cl;    
     } 
   }
-
+  // Apliquem el clipping:
   vector<float> f0;
-  float aux; 
+  float f, aux; 
   for (iX = x.begin(); iX + n_len < x.end(); iX = iX + n_shift) {
-  //  cout << (iX - x.begin())/300 << endl << endl; 
-    float f = analyzer(iX, iX + n_len);
-    f0.push_back(f);
+    f = analyzer(iX, iX + n_len);
+    f0.push_back(f);0
   }
 
   // JUST ODD NUMBERS  
