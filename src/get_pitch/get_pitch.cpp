@@ -104,7 +104,7 @@ int main(int argc, const char *argv[]) {
   float f, aux; 
   for (iX = x.begin(); iX + n_len < x.end(); iX = iX + n_shift) {
     f = analyzer(iX, iX + n_len);
-    f0.push_back(f);0
+    f0.push_back(f);
   }
 
   // JUST ODD NUMBERS  
