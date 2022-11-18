@@ -68,39 +68,28 @@ int main(int argc, const char *argv[]) {
   PitchAnalyzer analyzer(n_len, rate, PitchAnalyzer::RECT, 50, 500, umaxnorm);
 
   /// \TODO
+  /// \DONE
   /// Preprocess the input signal in order to ease pitch estimation. For instance,
   /// central-clipping or low pass filtering may be used.
 
-  float max = -1.0e10, min = 1.0e10;
-  float Cl1, Cl2, Cl; // Clipping first 1/3 and last 1/3 
+  // CLIPPING
+  //Get Clipping value from first 1/3 and last 1/3.
+  float Cl1 , Cl2 = Cl1 = -1.0, Cl; 
   // Iterate for each frame and save values in f0 vector
   vector<float>::iterator iX;
+  // Get Max value in magnitude, either positive or negative 
   for(iX = x.begin(); iX<x.begin() + (int)(x.size()/3); iX++){    
-    if(*iX > max)
-      max = *iX;   
-    if(*iX < min)      
-      min = *iX;  
+    Cl1 = std::max(Cl1, abs_f(*iX));
   }
-  if(abs_f(min) > abs_f(max))   
-    Cl1 = abs_f(min);  
-  else    
-    Cl1 = abs_f(max); 
  
   for(iX = x.end() - (int)(x.size()/3); iX<x.end(); iX++){   
-    if(*iX > max)      
-      max = *iX;
-    if(*iX < min)      
-      min = *iX;  
-    }  
-    if(abs_f(min) > abs_f(max))   
-      Cl2 = abs_f(min);  
-    else    
-      Cl2 = abs_f(max); // Get Max in magnitude // Get minimum of both the first and last part of the signal  
-    Cl = Cl2;
-    if(Cl1 < Cl2)    
-      Cl = Cl1;   
-    Cl = 0.001*Cl;  
-    cout << Cl << endl; 
+    Cl2 = std::max(Cl2, abs_f(*iX));
+  }  
+
+  // Get minimum of both maximums of the first and last part of the signal  
+  Cl = 0.001*std::min(Cl1, Cl2);
+
+//  std::cout << Cl << std::endl; //Print at bash Cl and endline('\n')
 
   for(iX = x.begin(); iX<x.end(); iX++){
     if(abs_f(*iX)<Cl)      
@@ -116,7 +105,7 @@ int main(int argc, const char *argv[]) {
   vector<float> f0;
   float aux; 
   for (iX = x.begin(); iX + n_len < x.end(); iX = iX + n_shift) {
-    cout << (iX - x.begin())/300 << endl << endl; 
+  //  cout << (iX - x.begin())/300 << endl << endl; 
     float f = analyzer(iX, iX + n_len);
     f0.push_back(f);
   }
