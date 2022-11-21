@@ -12,7 +12,7 @@ namespace upc {
 
     for (unsigned int l = 0; l < r.size(); ++l) {
   		/// \TODO Compute the autocorrelation r[l]
-      /// \FET Autocorrelation computed
+      /// \DONE Autocorrelation computed
       /// - Inicialitzem l'autocorrelació a 0
       /// - Afegim el producte
       /// - Dividim per la durada

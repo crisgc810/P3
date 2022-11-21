@@ -21,6 +21,8 @@ Ejercicios básicos
      unos 30 ms de un fonema sonoro y su periodo de pitch; y, en otro *subplot*, se vea con claridad la
 	 autocorrelación de la señal y la posición del primer máximo secundario.
 
+   <img src="img/grafica_python.png" align="center">
+
 	 NOTA: es más que probable que tenga que usar Python, Octave/MATLAB u otro programa semejante para
 	 hacerlo. Se valorará la utilización de la biblioteca matplotlib de Python.
 
@@ -46,6 +48,8 @@ Ejercicios básicos
 	    principales candidatos para determinar la sonoridad de la voz: el nivel de potencia de la señal
 		(r[0]), la autocorrelación normalizada de uno (r1norm = r[1] / r[0]) y el valor de la
 		autocorrelación en su máximo secundario (rmaxnorm = r[lag] / r[0]).
+
+    <img src="img/wavesurfer-sordo-sonoro.png" align="center">
 
 		Puede considerar, también, la conveniencia de usar la tasa de cruces por cero.
 
