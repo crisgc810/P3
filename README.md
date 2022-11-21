@@ -34,6 +34,7 @@ Ejercicios básicos
    * Implemente la regla de decisión sonoro o sordo e inserte el código correspondiente.
 
    <img src="img/imag3.png" align="center">
+   <img src="img/imag3v2.png" align="center">
 
 
    * Puede serle útil seguir las instrucciones contenidas en el documento adjunto `código.pdf`.
@@ -67,6 +68,8 @@ Ejercicios básicos
     y el *score* TOTAL proporcionados por `pitch_evaluate` en la evaluación de la base de datos 
 	`pitch_db/train`..
 
+    <img src="img/total9074.png" align="center">
+
 Ejercicios de ampliación
 ------------------------
 
@@ -79,6 +82,8 @@ Ejercicios de ampliación
 
   * Inserte un *pantallazo* en el que se vea el mensaje de ayuda del programa y un ejemplo de utilización
     con los argumentos añadidos.
+
+    <img src="img/docopt_help.png" align="center">
 
 - Implemente las técnicas que considere oportunas para optimizar las prestaciones del sistema de estimación
   de pitch.
@@ -99,6 +104,10 @@ Ejercicios de ampliación
 
   Incluya, a continuación, una explicación de las técnicas incorporadas al estimador. Se valorará la
   inclusión de gráficas, tablas, código o cualquier otra cosa que ayude a comprender el trabajo realizado.
+
+Clipping: Recortar la parte de la señal cercana a 0, reduciendo el ruido y simplificando la detección de la periodicidad.
+Antes de aplicarlo calculamos el ZCR para pasar como condicion al detector de señal sorda o sonora, usando un threshold que se pasa como opción del programa.
+Luego se aplica un filtro de mediana para poder filtrar los valores más dispares. Hemos ido cortos de tiempo y no hemos conseguido que funcione demasiado bien, pero lo mantenemos en el código.
 
   También se valorará la realización de un estudio de los parámetros involucrados. Por ejemplo, si se opta
   por implementar el filtro de mediana, se valorará el análisis de los resultados obtenidos en función de

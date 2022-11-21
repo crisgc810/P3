@@ -65,17 +65,14 @@ namespace upc {
     /// * You can use the standard features (pot, r1norm, rmaxnorm),
     ///   or compute and use other ones.
 
-    if(rmaxnorm > r2maxth) return false; //2nd auto.r. max > threshold, voiced
-    return true;
-/*
-    int voiced=0;                   //Sum of conditions
+
+    int voiced = 0;                 //Sum of conditions
     if(rmaxnorm > r2maxth) voiced++;//2nd auto.r. max > threshold, voiced
     if(r1norm > r1r0th) voiced++;   //2nd sample ~= than 1st, voiced
     if(zcr < zcrth) voiced++;       //if low zcr, voiced.
   
     if(voiced >= 2) return false;   //Return false if voiced.
     return true;                    // Return true if unvoiced.
-*/
   }
 
   float PitchAnalyzer::compute_pitch(vector<float>& x, float zcr) const {

@@ -25,8 +25,11 @@ Usage:
     get_pitch --version
 
 Options:
-    -r REAL, --r2maxth=REAL  Normalized Autocorrelation 2nd Max Threshold.[default: 0.43]
-    -c REAL, --clipmult=REAL  Clipping max multiplier [default: 0.01]
+    -m REAL, --medfilt=REAL  ODD Number to set Median Filter length. [default: 1]
+    -c REAL, --clipmult=REAL  Clipping max multiplier [default: 0.0075]
+    -r REAL, --r2maxth=REAL  Normalized Autocorrelation 2nd Max Threshold.[default: 0.4]
+    -1 REAL, --r1r0th=REAL  Autocorrelation r[1]/r[0] relation Threshold. [default: 0.55]
+    -z REAL, --zcrth=REAL  ZCR Threshold. [default: 30]
 
     -h, --help  Show this screen
     --version   Show the version of the project
@@ -47,10 +50,6 @@ int main(int argc, const char *argv[]) {
   /// \DONE
 	///  Modify the program syntax and the call to **docopt()** in order to
 	///  add options and arguments to the program.
-  /*
-      -1 REAL, --r1r0th=REAL  Autocorrelation r[1]/r[0] relation Threshold. [default: 0.9]
-    -z REAL, --zcrth=REAL  ZCR Threshold. [default: 1.0]
-  */
     std::map<std::string, docopt::value> args = docopt::docopt(USAGE,
         {argv + 1, argv + argc},	// array of arguments, without the program name
         true,    // show help if requested
@@ -60,8 +59,9 @@ int main(int argc, const char *argv[]) {
 	std::string output_txt = args["<output-txt>"].asString();
   float r2maxth = stof(args["--r2maxth"].asString());
   float clipmult = stof(args["--clipmult"].asString());
-  float r1r0th = 0;//stof(args["--r1r0th"].asString());
-  float zcrth = 0;//stof(args["--zcrth"].asString());
+  float r1r0th = stof(args["--r1r0th"].asString());
+  float zcrth = stof(args["--zcrth"].asString());
+  float medfilt = stof(args["--medfilt"].asString());
 
   // Read input sound file
   unsigned int rate;
@@ -81,7 +81,7 @@ int main(int argc, const char *argv[]) {
   /// \DONE
   /// Preprocess the input signal in order to ease pitch estimation. For instance, central-clipping or low pass filtering may be used.
 
-  std::vector<float>::iterator iX;
+  std::vector<float>::iterator iX, it;
 
   // CLIPPING
   // Iterate for each frame and save values in f0 vector
@@ -92,41 +92,41 @@ int main(int argc, const char *argv[]) {
   }
   Cl = clipmult * Cl;
 
-  for(iX = x.begin(); iX < x.end(); ++iX){
-    if(abs_f(*iX)<Cl)      
-      *iX = 0;    
-    else{
-      if(*iX > 0)        
-        *iX = *iX - Cl;
-      else        
-        *iX = *iX + Cl;    
-    } 
-  }
-
   vector<float> f0;
-  float f, aux, zcr=0; 
+  float f, aux, prev, act, zcr=0; 
+  float cte = rate / (2 * (n_len - 1));
   for (iX = x.begin(); iX + n_len < x.end(); iX = iX + n_shift) {
     //Implement code to pass its original ZCR value.
+    prev=0; aux=0;
+    for(it = iX; it < iX + n_len; ++it){  //COMPUTE ZCR and Clipping:
+      act = *it;
+      if((act * prev) < 0){ aux++;}
+      prev = act;
+
+      if(abs(act) < Cl){ *it = 0;}
+      else *it = *it + Cl * ((act < 0) - (act > 0));
+    }
+    
+    zcr = aux * cte;
+    //cout << zcr <<"\t"<< aux <<"\t"<< rate <<"\t"<< n_len <<"\t"<< endl;
     f = analyzer(iX, iX + n_len, zcr);
     f0.push_back(f);
   }
 
   // JUST ODD NUMBERS  
-  int F_size = 1;  
+  int F_size = medfilt;  
   vector<float> filter; 
   
   /// \TODO
   /// \DONE
   /// Postprocess the estimation in order to supress errors. For instance, a median filter
-  /// or time-warping may be used.
-  for(iX = f0.begin(); iX < f0.end() - (F_size - 1); ++iX){
-    // fill filter    
+
+  for(iX = f0.begin(); iX < f0.end() - (F_size - 1); ++iX){    
     for(int i = 0; i<F_size; i++)      
       filter.push_back(*(iX+i));
-    // Order filter  ​
     int k, l;
 
-    for(k = 0; k < F_size-1; k++){
+    for(k = 0; k < F_size-1; k++){      // Sort:
       for(l = 0; l < F_size-k-1; l++){
         if (filter[l] > filter[l+1]){        
           aux = filter[l];        
@@ -139,6 +139,7 @@ int main(int argc, const char *argv[]) {
     f0[iX - f0.begin()] = filter[F_size/2];
     filter.clear();  
   } 
+
   // Write f0 contour into the output file
   ofstream os(output_txt);
   if (!os.good()) {
