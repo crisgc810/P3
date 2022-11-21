@@ -37,6 +37,10 @@ namespace upc {
     switch (win_type) {
     case HAMMING:
       /// \TODO Implement the Hamming window
+      /// \DONE Formula aplicada
+      for(unsigned int i=0; i<frameLen; i++){
+        window[i] = 0.54 - 0.46*cos((2*M_PI*i)/(frameLen-1));
+      }
       break;
     case RECT:
     default:
@@ -56,16 +60,25 @@ namespace upc {
       npitch_max = frameLen/2;
   }
 
-  bool PitchAnalyzer::unvoiced(float pot, float r1norm, float rmaxnorm) const {
+  bool PitchAnalyzer::unvoiced(float zcr, float r1norm, float rmaxnorm) const {
     /// \TODO Implement a rule to decide whether the sound is voiced or not.
     /// * You can use the standard features (pot, r1norm, rmaxnorm),
     ///   or compute and use other ones.
-    if(rmaxnorm> umaxnorm) return false;
-  
+
+    if(rmaxnorm > r2maxth) return false; //2nd auto.r. max > threshold, voiced
     return true;
+/*
+    int voiced=0;                   //Sum of conditions
+    if(rmaxnorm > r2maxth) voiced++;//2nd auto.r. max > threshold, voiced
+    if(r1norm > r1r0th) voiced++;   //2nd sample ~= than 1st, voiced
+    if(zcr < zcrth) voiced++;       //if low zcr, voiced.
+  
+    if(voiced >= 2) return false;   //Return false if voiced.
+    return true;                    // Return true if unvoiced.
+*/
   }
 
-  float PitchAnalyzer::compute_pitch(vector<float> & x) const {
+  float PitchAnalyzer::compute_pitch(vector<float>& x, float zcr) const {
     if (x.size() != frameLen)
       return -1.0F;
 
@@ -78,7 +91,7 @@ namespace upc {
     //Compute correlation
     autocorrelation(x, r);
 
-    vector<float>::const_iterator iR = r.begin(), iRMax = iR;
+    std::vector<float>::iterator iR = r.begin(), iRMax = iR;
 
     /// \TODO 
 	/// Find the lag of the maximum value of the autocorrelation away from the origin.<br>
@@ -89,12 +102,12 @@ namespace upc {
 	/// In either case, the lag should not exceed that of the minimum value of the pitch.
     for(iRMax = iR = r.begin() + npitch_min; iR< r.begin()+ npitch_max; iR++){ //Com que el màxim ha d'estar entre en màx i el mín pitch fem el for que recorri aquest espai
       if(*iR>*iRMax){
-        iRMax= iR;   //Si el iR és més gran que el màxim, actualitzem el valor d'aquest màxim
+        iRMax= iR;   //Actualitzem la direcció del màxim
       }
     }
     unsigned int lag = iRMax - r.begin();
 
-    float pot = 10 * log10(r[0]);
+    //float pot = 10 * log10(r[0]);
 
     //You can print these (and other) features, look at them using wavesurfer
     //Based on that, implement a rule for unvoiced
@@ -104,7 +117,7 @@ namespace upc {
       cout << pot << '\t' << r[1]/r[0] << '\t' << r[lag]/r[0] << endl;
 #endif
     
-    if (unvoiced(pot, r[1]/r[0], r[lag]/r[0]))
+    if (unvoiced(zcr, r[1]/r[0], r[lag]/r[0]))
       return 0;
     else
       return (float) samplingFreq/(float) lag;

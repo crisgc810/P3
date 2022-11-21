@@ -25,7 +25,9 @@ Usage:
     get_pitch --version
 
 Options:
-    -m REAL, --umaxnorm=REAL  Llindar/umbral del màxim de l'autocorrelació [default: 0.6]
+    -r REAL, --r2maxth=REAL  Normalized Autocorrelation 2nd Max Threshold.[default: 0.43]
+    -c REAL, --clipmult=REAL  Clipping max multiplier [default: 0.01]
+
     -h, --help  Show this screen
     --version   Show the version of the project
 
@@ -42,8 +44,13 @@ float abs_f(float value){
 }
 int main(int argc, const char *argv[]) {
 	/// \TODO 
+  /// \DONE
 	///  Modify the program syntax and the call to **docopt()** in order to
 	///  add options and arguments to the program.
+  /*
+      -1 REAL, --r1r0th=REAL  Autocorrelation r[1]/r[0] relation Threshold. [default: 0.9]
+    -z REAL, --zcrth=REAL  ZCR Threshold. [default: 1.0]
+  */
     std::map<std::string, docopt::value> args = docopt::docopt(USAGE,
         {argv + 1, argv + argc},	// array of arguments, without the program name
         true,    // show help if requested
@@ -51,8 +58,11 @@ int main(int argc, const char *argv[]) {
 
 	std::string input_wav = args["<input-wav>"].asString();
 	std::string output_txt = args["<output-txt>"].asString();
-  float umaxnorm = stof(args["--umaxnorm"].asString());
-  
+  float r2maxth = stof(args["--r2maxth"].asString());
+  float clipmult = stof(args["--clipmult"].asString());
+  float r1r0th = 0;//stof(args["--r1r0th"].asString());
+  float zcrth = 0;//stof(args["--zcrth"].asString());
+
   // Read input sound file
   unsigned int rate;
   vector<float> x;
@@ -65,31 +75,24 @@ int main(int argc, const char *argv[]) {
   int n_shift = rate * FRAME_SHIFT;
 
   // Define analyzer
-  PitchAnalyzer analyzer(n_len, rate, PitchAnalyzer::RECT, 50, 500, umaxnorm);
+  PitchAnalyzer analyzer(n_len, rate, PitchAnalyzer::RECT, 50, 500, r2maxth,r1r0th, zcrth);
 
   /// \TODO
   /// \DONE
-  /// Preprocess the input signal in order to ease pitch estimation. For instance,
-  /// central-clipping or low pass filtering may be used.
+  /// Preprocess the input signal in order to ease pitch estimation. For instance, central-clipping or low pass filtering may be used.
+
+  std::vector<float>::iterator iX;
 
   // CLIPPING
-  //Get Clipping value from first 1/3 and last 1/3.
-  float Cl1 , Cl2 = Cl1 = -1.0, Cl; 
   // Iterate for each frame and save values in f0 vector
-  vector<float>::iterator iX;
   // Get Max value in magnitude, either positive or negative 
-  for(iX = x.begin(); iX<x.begin() + (int)(x.size()/3); iX++){    
-    Cl1 = std::max(Cl1, abs_f(*iX));
+  float Cl = -1.0;
+  for(iX = x.begin(); iX < x.end(); ++iX){    
+    Cl = std::max(Cl, abs_f(*iX));
   }
- 
-  for(iX = x.end() - (int)(x.size()/3); iX<x.end(); iX++){   
-    Cl2 = std::max(Cl2, abs_f(*iX));
-  }  
+  Cl = clipmult * Cl;
 
-  // Get minimum of both maximums of the first and last part of the signal  
-  Cl = 0.001*std::min(Cl1, Cl2);
-
-  for(iX = x.begin(); iX<x.end(); iX++){
+  for(iX = x.begin(); iX < x.end(); ++iX){
     if(abs_f(*iX)<Cl)      
       *iX = 0;    
     else{
@@ -99,30 +102,24 @@ int main(int argc, const char *argv[]) {
         *iX = *iX + Cl;    
     } 
   }
-  // Apliquem el clipping:
+
   vector<float> f0;
-  float f, aux; 
+  float f, aux, zcr=0; 
   for (iX = x.begin(); iX + n_len < x.end(); iX = iX + n_shift) {
-    f = analyzer(iX, iX + n_len);
-    f0.push_back(f);0
+    //Implement code to pass its original ZCR value.
+    f = analyzer(iX, iX + n_len, zcr);
+    f0.push_back(f);
   }
 
   // JUST ODD NUMBERS  
   int F_size = 1;  
   vector<float> filter; 
   
-  /* Iterate for each frame and save values in f0 vector
-  vector<float>::iterator iX;
-  vector<float> f0;
-  for (iX = x.begin(); iX + n_len < x.end(); iX = iX + n_shift) {
-    float f = analyzer(iX, iX + n_len);
-    f0.push_back(f);
-  }*/
-
   /// \TODO
+  /// \DONE
   /// Postprocess the estimation in order to supress errors. For instance, a median filter
   /// or time-warping may be used.
-  for(iX = f0.begin(); iX<f0.end()-(F_size-1); iX += 1){
+  for(iX = f0.begin(); iX < f0.end() - (F_size - 1); ++iX){
     // fill filter    
     for(int i = 0; i<F_size; i++)      
       filter.push_back(*(iX+i));
